@@ -104,11 +104,11 @@ namespace NetTally.Output
                         {
                             sb.Append("Task: ");
                             sb.AppendLine(task.Key);
-                            sb.AppendLine(task.Value.First<RankResult>().Option);
+                            sb.AppendLine(task.Value.First().Option);
                             sb.AppendLine("");
                         }
                     } else
-                        sb.Append(output.First<KeyValuePair<string, RankResults>>().Value.First<RankResult>().Option);
+                        sb.Append(output.First().Value.First().Option);
                     return true;
                 }
             }

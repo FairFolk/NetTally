@@ -38,7 +38,7 @@ namespace NetTally.VoteCounting.RankVoteCounting
             
             foreach(String s in allChoices)
             {
-                String app = TruncateVote(s);
+                String app = FormatVote(s);
                 sb.Append(app);
                 sb.Append(" ; ");
             }
@@ -48,14 +48,14 @@ namespace NetTally.VoteCounting.RankVoteCounting
 
             sb.AppendLine("\nCopy the following into the \"Add Vote(s)\" field:\n");
 
-            Dictionary<String, int> collect = new Dictionary<string, int>();
+            Dictionary<String, Tuple<int, String>> collect = new Dictionary<String, Tuple<int, String>>();
             foreach (VoterRankings vr in voterRankings)
             {
                 StringBuilder temp = new StringBuilder();
                 vr.RankedVotes.Sort((x, y) => x.Rank - y.Rank);
                 RankedVote first = vr.RankedVotes.First();
                 int r = first.Rank;
-                String app = TruncateVote(first.Vote);
+                String app = FormatVote(first.Vote);
                 temp.Append(app);
                 vr.RankedVotes.RemoveAt(0);
 
@@ -67,21 +67,29 @@ namespace NetTally.VoteCounting.RankVoteCounting
                         temp.Append(" = ");
                     r = rv.Rank;
 
-                    app = TruncateVote(rv.Vote);
+                    app = FormatVote(rv.Vote);
                     temp.Append(app);
                 }
                 String s = temp.ToString();
-                int num;
-                if (collect.TryGetValue(s, out num))
-                    collect[s] = num + 1;
+                Tuple<int, String> data;
+                if (collect.TryGetValue(s, out data))
+                {
+                    Tuple<int, String> ndata = new Tuple<int, string>(data.Item1 + 1, String.Concat(data.Item2, ",", FormatVoter(vr.Voter)));
+                    collect[s] = ndata;
+                }
                 else
-                    collect.Add(s, 1);
+                {
+                    data = new Tuple<int, string>(1, FormatVoter(vr.Voter));
+                    collect.Add(s, data);
+                }
             }
-            foreach (KeyValuePair<String, int> kv in collect)
+            foreach (KeyValuePair<String, Tuple<int, String>> kv in collect)
             {
+                sb.Append(kv.Value.Item2);
+                sb.Append(" || ");
                 sb.Append(kv.Key);
-                sb.Append("*");
-                sb.Append(kv.Value);
+                sb.Append(" * ");
+                sb.Append(kv.Value.Item1);
                 sb.AppendLine("");
             }
 
@@ -90,12 +98,17 @@ namespace NetTally.VoteCounting.RankVoteCounting
             return output;
         }
 
-        private String TruncateVote(String Vote)
+        private String FormatVote(String Vote)
         {
-            String tr = Regex.Replace(Vote, @"[^A-Za-z0-9]+", "");
+            String tr = Regex.Replace(Vote, @"[^A-Za-z0-9\ ]+", "");
             if (tr.Length > 30)
                 tr = tr.Substring(0, 30);
             return tr;
+        }
+
+        private String FormatVoter(String Voter)
+        {
+            return Regex.Replace(Voter, @"[^A-Za-z0-9\ ]+", "");
         }
     }
 }
