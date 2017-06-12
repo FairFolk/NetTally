@@ -35,12 +35,10 @@ namespace NetTally.VoteCounting.RankVoteCounting
             StringBuilder sb = new StringBuilder();
             sb.AppendLine("Warning: Candidate names are stripped of non-alphanumeric characters and reduced to 30 characters. If this results in multiple idendical candidates, Condorcet.Vote might not work.");
             sb.AppendLine("Copy the following into the \"Add Candidates\" field:\n");
-
-            List<String> allTrunc = new List<string>();
+            
             foreach(String s in allChoices)
             {
                 String app = TruncateVote(s);
-                allTrunc.Add(app);
                 sb.Append(app);
                 sb.Append(" ; ");
             }
@@ -50,39 +48,40 @@ namespace NetTally.VoteCounting.RankVoteCounting
 
             sb.AppendLine("\nCopy the following into the \"Add Vote(s)\" field:\n");
 
-            foreach(VoterRankings vr in voterRankings)
+            Dictionary<String, int> collect = new Dictionary<string, int>();
+            foreach (VoterRankings vr in voterRankings)
             {
-                HashSet<String> allTemp = new HashSet<string>(allTrunc);
+                StringBuilder temp = new StringBuilder();
                 vr.RankedVotes.Sort((x, y) => x.Rank - y.Rank);
                 RankedVote first = vr.RankedVotes.First();
                 int r = first.Rank;
                 String app = TruncateVote(first.Vote);
-                sb.Append(app);
+                temp.Append(app);
                 vr.RankedVotes.RemoveAt(0);
-                allTemp.Remove(app);
 
-                foreach(RankedVote rv in vr.RankedVotes)
+                foreach (RankedVote rv in vr.RankedVotes)
                 {
                     if (rv.Rank > r)
-                        sb.Append(" > ");
+                        temp.Append(" > ");
                     else
-                        sb.Append(" = ");
+                        temp.Append(" = ");
                     r = rv.Rank;
 
                     app = TruncateVote(rv.Vote);
-                    sb.Append(app);
-                    allTemp.Remove(app);
+                    temp.Append(app);
                 }
-                if (allTemp.Count > 0)
-                {
-                    sb.Append(" > ");
-                    foreach (String v in allTemp)
-                    {
-                        sb.Append(v);
-                        sb.Append(" = ");
-                    }
-                    sb.Length -= 3;
-                }
+                String s = temp.ToString();
+                int num;
+                if (collect.TryGetValue(s, out num))
+                    collect[s] = num + 1;
+                else
+                    collect.Add(s, 1);
+            }
+            foreach (KeyValuePair<String, int> kv in collect)
+            {
+                sb.Append(kv.Key);
+                sb.Append("*");
+                sb.Append(kv.Value);
                 sb.AppendLine("");
             }
 

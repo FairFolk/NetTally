@@ -98,7 +98,17 @@ namespace NetTally.Output
                 if(counter is IVoteFormat)
                 {
                     RankResultsByTask output = counter.CountVotes(VoteCounter.Instance.GetVotesCollection(VoteType.Rank));
-                    sb.AppendLine(output.First<KeyValuePair<string, RankResults>>().Value.First<RankResult>().Option);
+                    if(output.Count > 1)
+                    {
+                        foreach(var task in output)
+                        {
+                            sb.Append("Task: ");
+                            sb.AppendLine(task.Key);
+                            sb.AppendLine(task.Value.First<RankResult>().Option);
+                            sb.AppendLine("");
+                        }
+                    } else
+                        sb.Append(output.First<KeyValuePair<string, RankResults>>().Value.First<RankResult>().Option);
                     return true;
                 }
             }
