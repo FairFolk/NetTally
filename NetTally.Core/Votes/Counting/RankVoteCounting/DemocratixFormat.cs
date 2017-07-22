@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Text;
-using NetTally.Utility;
 using NetTally.VoteCounting.RankVoteCounting.Utility;
+using System.Text.RegularExpressions;
 
 namespace NetTally.VoteCounting.RankVoteCounting
 {
@@ -42,10 +41,12 @@ namespace NetTally.VoteCounting.RankVoteCounting
             for(int k = 1; k <= allChoices.Count; k++)
             {
                 String app = allChoices.ElementAt(k-1);
-                voteNum.Add(app, k);
                 sb.Append(k);
                 sb.Append(",");
                 sb.AppendLine(app);
+
+                app = Regex.Replace(app, @"[^A-Za-z0-9]+", "");
+                voteNum.Add(app, k);
             }
 
             Dictionary<String, int> collect = new Dictionary<string, int>();
@@ -59,7 +60,8 @@ namespace NetTally.VoteCounting.RankVoteCounting
 
                 foreach (RankedVote rv in vr.RankedVotes)
                 {
-                    if (!voteNum.TryGetValue(rv.Vote, out app))
+                    String tempV = Regex.Replace(rv.Vote, @"[^A-Za-z0-9]+", "");
+                    if (!voteNum.TryGetValue(tempV, out app))
                         continue;
 
                     if (rv.Rank > r)
@@ -105,7 +107,7 @@ namespace NetTally.VoteCounting.RankVoteCounting
             sb.Append(votes);
 
             RankResults output = new RankResults();
-            output.Add(new RankResult(sb.ToString(), "CondorcetVote Format Output"));
+            output.Add(new RankResult(sb.ToString(), "Democratix Format Output"));
             return output;
         }
     }
